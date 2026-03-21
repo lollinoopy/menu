@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>오늘 점심 뭐먹지?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#faf9f7;--sur:#fff;--bd:#e8e4de;--bdh:#c8c2b8;--tx:#1a1816;--txm:#7a746c;--r:14px;--pill:999px;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+.app{min-height:100vh;}
+.page{display:none;padding:2.5rem 1.5rem 5rem;max-width:600px;margin:0 auto;}
+.page.active{display:block;}
+
+.home{text-align:center;padding:3.5rem 1rem;}
+.home h1{font-size:2rem;font-weight:700;letter-spacing:-.03em;margin-bottom:.5rem;}
+.home-sub{font-size:.9rem;color:var(--txm);margin-bottom:2.5rem;}
+.home-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:400px;margin:0 auto;}
+.hcard{border:1px solid var(--bd);border-radius:var(--r);padding:1.4rem .9rem;cursor:pointer;background:var(--sur);transition:all .18s;text-align:center;}
+.hcard:hover{background:#f5f3f0;border-color:var(--bdh);transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.07);}
+.hcard-icon{font-size:28px;margin-bottom:8px;display:block;}
+.hcard-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.hcard-desc{font-size:11px;color:var(--txm);line-height:1.5;}
+
+.back{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--txm);cursor:pointer;border:1px solid var(--bd);background:var(--sur);margin-bottom:1.8rem;padding:6px 12px 6px 8px;font-family:inherit;border-radius:var(--pill);transition:all .15s;}
+.back:hover{color:var(--tx);border-color:var(--bdh);background:#f5f3f0;}
+
+.rand-page{text-align:center;}
+.pg-title{font-size:19px;font-weight:700;margin-bottom:4px;}
+.pg-sub{font-size:13px;color:var(--txm);}
+.rand-card{margin:1.8rem auto;max-width:270px;background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);padding:2.6rem 1.4rem;cursor:pointer;transition:all .15s;user-select:none;text-align:center;}
+.rand-card:hover{border-color:var(--bdh);background:#f5f3f0;}
+.rand-card.hi{border:2px solid #d85a30;background:#fdf0eb;}
+.rand-card.hi:hover{background:#fdf0eb;}
+.rand-card.fl{border:2px solid #378add;background:#eaf3fb;}
+.re{font-size:44px;margin-bottom:12px;display:block;}
+.rn{font-size:20px;font-weight:700;margin-bottom:5px;}
+.rd{font-size:13px;color:var(--txm);}
+.rmeta{font-size:12px;color:var(--txm);margin-top:.5rem;min-height:16px;}
+
+.qwrap{max-width:500px;margin:0 auto;}
+.qprog{display:flex;gap:5px;margin-bottom:1.8rem;}
+.qdot{flex:1;height:3px;border-radius:999px;background:var(--bd);transition:background .3s;}
+.qdot.done{background:var(--tx);}
+@keyframes fi{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.qstep{animation:fi .25s ease;}
+.qq{font-size:19px;font-weight:700;margin-bottom:5px;}
+.qh{font-size:13px;color:var(--txm);margin-bottom:1.4rem;}
+.qopts{display:flex;flex-direction:column;gap:9px;}
+.qopt{display:flex;align-items:center;gap:11px;padding:12px 15px;border-radius:var(--r);border:1px solid var(--bd);background:var(--sur);cursor:pointer;font-size:14px;font-family:inherit;color:var(--tx);transition:all .15s;text-align:left;width:100%;}
+.qopt:hover{background:#f5f3f0;border-color:var(--bdh);}
+.qopt-icon{font-size:19px;flex-shrink:0;}
+.qopt-label{font-weight:500;display:block;}
+.qopt-sub{font-size:11px;color:var(--txm);margin-top:2px;display:block;}
+
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:8px;margin-top:1rem;}
+.rc{background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);padding:.8rem;cursor:pointer;transition:all .15s;}
+.rc:hover{border-color:var(--bdh);background:#f5f3f0;transform:translateY(-1px);}
+.rc.fl{border:2px solid #378add;background:#eaf3fb;}
+.rc.hi{border:2px solid #d85a30;background:#fdf0eb;}
+.rc-emoji{font-size:20px;margin-bottom:5px;display:block;}
+.rc-name{font-size:12px;font-weight:700;margin-bottom:2px;}
+.rc-desc{font-size:11px;color:var(--txm);}
+
+.brow{display:flex;gap:8px;flex-wrap:wrap;margin-top:1.4rem;align-items:center;}
+.rbtn{padding:8px 15px;border-radius:var(--pill);font-size:13px;font-family:inherit;cursor:pointer;border:1px solid var(--bd);background:var(--sur);color:var(--tx);transition:background .15s;}
+.rbtn:hover{background:#f5f3f0;}
+.pbtn{padding:8px 15px;border-radius:var(--pill);font-size:13px;font-family:inherit;cursor:pointer;border:none;background:var(--tx);color:var(--sur);transition:opacity .15s;font-weight:500;}
+.pbtn:hover{opacity:.8;}
+.pbtn:disabled{opacity:.4;cursor:not-allowed;}
+
+.fbanner{margin-top:1.4rem;padding:1.3rem 1.4rem;border-radius:var(--r);border:2px solid #d85a30;background:#fdf0eb;text-align:center;animation:fi .3s ease;}
+.fb-emoji{font-size:36px;margin-bottom:8px;display:block;}
+.fb-label{font-size:11px;color:var(--txm);margin-bottom:3px;}
+.fb-name{font-size:19px;font-weight:700;margin-bottom:4px;}
+.fb-desc{font-size:12px;color:var(--txm);margin-bottom:12px;}
+
+.nbtn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:var(--pill);font-size:12px;font-family:inherit;font-weight:500;cursor:pointer;border:none;background:#03C75A;color:#fff;transition:opacity .15s;text-decoration:none;margin-top:8px;}
+.nbtn:hover{opacity:.85;}
+
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:100;}
+.mbg.open{display:flex;}
+.modal{background:var(--sur);border-radius:var(--r);padding:1.6rem 1.4rem;max-width:285px;width:90%;text-align:center;border:1px solid var(--bd);animation:fi .2s ease;}
+.m-emoji{font-size:34px;margin-bottom:8px;display:block;}
+.m-title{font-size:15px;font-weight:700;margin-bottom:5px;}
+.m-sub{font-size:12px;color:var(--txm);margin-bottom:1rem;}
+.m-btns{display:flex;flex-direction:column;gap:7px;}
+.mcancel{padding:9px;border-radius:var(--pill);font-size:12px;font-family:inherit;cursor:pointer;border:1px solid var(--bd);background:transparent;color:var(--txm);transition:background .15s;}
+.mcancel:hover{background:#f5f3f0;}
+
+@media(max-width:480px){.page{padding:2rem 1rem 4rem;}.home h1{font-size:1.7rem;}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- 홈 -->
+<div class="page active" id="p-home">
+  <div class="home">
+    <h1 id="home-title" onclick="secretTap()" style="cursor:default;">뭐 먹을지 도와드릴게요 🍽</h1>
+    <div class="home-sub">상황에 맞게 골라보세요</div>
+    <div class="home-cards">
+      <div class="hcard" onclick="goTo('p-rand');setTimeout(function(){doRand('l');},80)">
+        <span class="hcard-icon">🎲</span>
+        <div class="hcard-title">점심 랜덤 뽑기</div>
+        <div class="hcard-desc">고민 없이<br>바로 뽑기</div>
+      </div>
+      <div class="hcard" onclick="goTo('p-lquiz');startQ('lunch')">
+        <span class="hcard-icon">🔍</span>
+        <div class="hcard-title">점심 뭐먹지</div>
+        <div class="hcard-desc">질문으로<br>딱 맞는 메뉴</div>
+      </div>
+      <div class="hcard" onclick="goTo('p-hrand');setTimeout(function(){doRand('h');},80)">
+        <span class="hcard-icon">🎲</span>
+        <div class="hcard-title">회식 랜덤 뽑기</div>
+        <div class="hcard-desc">고민 없이<br>바로 뽑기</div>
+      </div>
+      <div class="hcard" onclick="goTo('p-hquiz');startQ('hoesik')">
+        <span class="hcard-icon">🍻</span>
+        <div class="hcard-title">회식 메뉴 고르기</div>
+        <div class="hcard-desc">질문으로<br>회식 메뉴 추천</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 점심 랜덤 -->
+<div class="page" id="p-rand">
+  <div class="rand-page">
+    <button class="back" onclick="goHome()">🏠 처음으로</button>
+    <div class="pg-title">오늘 점심 랜덤 선택</div>
+    <div class="pg-sub">카드를 누르면 다시 뽑아요</div>
+    <div class="rand-card" id="rc-l" onclick="doRand('l')">
+      <span class="re" id="re-l"></span>
+      <div class="rn" id="rn-l"></div>
+      <div class="rd" id="rd-l"></div>
+    </div>
+    <div class="rmeta" id="rmeta-l"></div>
+    <div id="rnav-l"></div>
+  </div>
+</div>
+
+<!-- 회식 랜덤 -->
+<div class="page" id="p-hrand">
+  <div class="rand-page">
+    <button class="back" onclick="goHome()">🏠 처음으로</button>
+    <div class="pg-title">회식 랜덤 뽑기</div>
+    <div class="pg-sub">카드를 누르면 다시 뽑아요</div>
+    <div class="rand-card" id="rc-h" onclick="doRand('h')">
+      <span class="re" id="re-h"></span>
+      <div class="rn" id="rn-h"></div>
+      <div class="rd" id="rd-h"></div>
+    </div>
+    <div class="rmeta" id="rmeta-h"></div>
+    <div id="rnav-h"></div>
+  </div>
+</div>
+
+<!-- 점심 퀴즈 -->
+<div class="page" id="p-lquiz">
+  <div class="qwrap">
+    <button class="back" onclick="goHome()">🏠 처음으로</button>
+    <div class="qprog" id="lp"></div>
+    <div id="lc"></div>
+  </div>
+</div>
+
+<!-- 회식 퀴즈 -->
+<div class="page" id="p-hquiz">
+  <div class="qwrap">
+    <button class="back" onclick="goHome()">🏠 처음으로</button>
+    <div class="qprog" id="hp"></div>
+    <div id="hc"></div>
+  </div>
+</div>
+
+<!-- 비밀 설정 -->
+<div class="page" id="p-secret">
+  <div class="qwrap">
+    <button class="back" onclick="goHome()">🏠 처음으로</button>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.4rem;">
+      <span style="font-size:20px;">🎭</span>
+      <div>
+        <div style="font-size:17px;font-weight:700;">비밀 설정</div>
+        <div style="font-size:12px;color:var(--txm);">팀장님 몰래 결과를 설정해두세요</div>
+      </div>
+    </div>
+    <div style="background:#fdf0eb;border:1px solid #f5c4b3;border-radius:var(--r);padding:1rem 1.2rem;margin-bottom:1.4rem;font-size:13px;color:#993c1d;line-height:1.6;">
+      조작 모드가 <span id="secret-status" style="font-weight:700;">꺼짐</span>이에요.<br>
+      아래에서 원하는 메뉴를 선택하고 켜두면, 다음 회식 랜덤 뽑기에서 설정한 메뉴로 멈춰요.
+    </div>
+    <div style="font-size:13px;font-weight:500;color:var(--txm);margin-bottom:.8rem;">결과로 나올 메뉴 선택</div>
+    <div id="secret-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:1.4rem;max-height:55vh;overflow-y:auto;"></div>
+    <div style="display:flex;gap:8px;margin-bottom:2rem;">
+      <button id="secret-toggle" onclick="toggleSecret()" style="flex:1;padding:11px;border-radius:var(--pill);font-size:14px;font-family:inherit;font-weight:700;cursor:pointer;border:none;background:var(--tx);color:var(--sur);transition:all .15s;">조작 모드 켜기</button>
+      <button onclick="goHome()" style="padding:11px 18px;border-radius:var(--pill);font-size:13px;font-family:inherit;cursor:pointer;border:1px solid var(--bd);background:var(--sur);color:var(--txm);">닫기</button>
+    </div>
+
+    <!-- 메뉴 엑셀 업로드 -->
+    <div style="border-top:1px solid var(--bd);padding-top:1.4rem;">
+      <div style="font-size:15px;font-weight:700;margin-bottom:4px;">📊 메뉴 데이터 관리</div>
+      <div style="font-size:12px;color:var(--txm);margin-bottom:1rem;">엑셀 파일로 메뉴를 한꺼번에 수정할 수 있어요</div>
+      <label for="xlsx-upload" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--pill);font-size:13px;font-family:inherit;cursor:pointer;border:1px solid var(--bd);background:var(--sur);color:var(--tx);transition:all .15s;">
+        📂 엑셀 파일 업로드
+      </label>
+      <input type="file" id="xlsx-upload" accept=".xlsx" style="display:none;" onchange="loadXlsx(this)">
+      <div id="upload-msg" style="font-size:12px;color:var(--txm);margin-top:.6rem;min-height:16px;"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- 모달 -->
+<div class="mbg" id="mbg" onclick="if(event.target===this)closeM()">
+  <div class="modal">
+    <span class="m-emoji" id="me"></span>
+    <div class="m-title" id="mt"></div>
+    <div class="m-sub">네이버 지도에서 주변 맛집을 확인해보세요</div>
+    <div class="m-btns">
+      <a class="nbtn" id="ml" href="#" target="_blank" style="justify-content:center;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+        <span id="mbt"></span>
+      </a>
+      <button class="mcancel" onclick="closeM()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── 메뉴 데이터 ── */
+var LF=[
+  {name:"된장찌개",emoji:"🍲",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"broth",desc:"구수하고 따뜻한"},
+  {name:"김치찌개",emoji:"🍲",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"broth",desc:"얼큰하고 진한"},
+  {name:"순두부찌개",emoji:"🫕",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"broth",desc:"부드럽고 얼큰한"},
+  {name:"부대찌개",emoji:"🍲",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"broth",desc:"푸짐하고 얼큰한"},
+  {name:"뚝배기불고기",emoji:"🥩",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"달달하고 부드러운"},
+  {name:"제육볶음",emoji:"🍖",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"nobroth",desc:"매콤하고 짭조름한"},
+  {name:"비빔밥",emoji:"🥗",cuisine:"korean",oily:"light",spicy:"spicy",broth:"nobroth",desc:"고추장 쓱쓱"},
+  {name:"물냉면",emoji:"🍜",cuisine:"korean",oily:"light",spicy:"mild",broth:"broth",desc:"시원하고 쫄깃한"},
+  {name:"비빔냉면",emoji:"🍜",cuisine:"korean",oily:"light",spicy:"spicy",broth:"nobroth",desc:"새콤 매콤 쫄깃한"},
+  {name:"갈비탕",emoji:"🍜",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"broth",desc:"깊고 든든한"},
+  {name:"설렁탕",emoji:"🍵",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"broth",desc:"뽀얗고 든든한"},
+  {name:"삼계탕",emoji:"🍗",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"broth",desc:"든든한 보양식"},
+  {name:"육개장",emoji:"🍲",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"broth",desc:"진하고 얼큰한"},
+  {name:"청국장",emoji:"🍲",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"broth",desc:"구수하고 진한"},
+  {name:"곰탕",emoji:"🍵",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"broth",desc:"진하고 깊은 국물"},
+  {name:"감자탕",emoji:"🍲",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"broth",desc:"얼큰하고 푸짐한"},
+  {name:"추어탕",emoji:"🍲",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"broth",desc:"구수하고 든든한"},
+  {name:"콩나물국밥",emoji:"🍚",cuisine:"korean",oily:"light",spicy:"mild",broth:"broth",desc:"시원하고 깔끔한"},
+  {name:"뼈해장국",emoji:"🍲",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"broth",desc:"속 풀어주는 얼큰함"},
+  {name:"닭볶음탕",emoji:"🍗",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"broth",desc:"매콤하고 쫄깃한"},
+  {name:"찜닭",emoji:"🍗",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"달콤하고 쫄깃한"},
+  {name:"매운갈비찜",emoji:"🍖",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"nobroth",desc:"매콤하고 부드러운"},
+  {name:"생선구이",emoji:"🐟",cuisine:"korean",oily:"light",spicy:"mild",broth:"nobroth",desc:"고소하고 담백한"},
+  {name:"쌈밥",emoji:"🥬",cuisine:"korean",oily:"light",spicy:"mild",broth:"nobroth",desc:"신선하고 건강한"},
+  {name:"비빔국수",emoji:"🍜",cuisine:"korean",oily:"light",spicy:"spicy",broth:"nobroth",desc:"새콤 매콤 쫄깃한"},
+  {name:"콩국수",emoji:"🍜",cuisine:"korean",oily:"light",spicy:"mild",broth:"broth",desc:"고소하고 시원한"},
+  {name:"칼국수",emoji:"🍜",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"broth",desc:"쫄깃하고 구수한"},
+  {name:"수제비",emoji:"🫕",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"broth",desc:"따뜻하고 구수한"},
+  {name:"편의점도시락",emoji:"🍱",cuisine:"korean",oily:"light",spicy:"mild",broth:"nobroth",desc:"간편하고 든든한"},
+  {name:"김치볶음밥",emoji:"🍚",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"nobroth",desc:"매콤하고 고소한"},
+  {name:"오므라이스",emoji:"🍳",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"부드럽고 달콤한"},
+  {name:"회덮밥",emoji:"🐟",cuisine:"korean",oily:"light",spicy:"spicy",broth:"nobroth",desc:"신선하고 새콤한"},
+  {name:"짜장면",emoji:"🍜",cuisine:"chinese",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"달콤하고 짭짤한"},
+  {name:"짬뽕",emoji:"🍜",cuisine:"chinese",oily:"hearty",spicy:"spicy",broth:"broth",desc:"얼큰하고 시원한"},
+  {name:"짜장볶음밥",emoji:"🍚",cuisine:"chinese",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"고소하고 짭짤한"},
+  {name:"초밥",emoji:"🍣",cuisine:"japanese",oily:"light",spicy:"mild",broth:"nobroth",desc:"신선하고 담백한"},
+  {name:"라멘",emoji:"🍜",cuisine:"japanese",oily:"hearty",spicy:"mild",broth:"broth",desc:"진하고 깊은 국물"},
+  {name:"일본식 돈카츠",emoji:"🍱",cuisine:"japanese",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"바삭하고 부드러운"},
+  {name:"돈가스",emoji:"🍱",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"두툼하고 고소한"},
+  {name:"우동",emoji:"🍜",cuisine:"japanese",oily:"light",spicy:"mild",broth:"broth",desc:"따뜻하고 쫄깃한"},
+  {name:"냉모밀",emoji:"🍜",cuisine:"japanese",oily:"light",spicy:"mild",broth:"broth",desc:"시원하고 담백한"},
+  {name:"소고기덮밥",emoji:"🍚",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"달달하고 든든한"},
+  {name:"연어덮밥",emoji:"🍣",cuisine:"japanese",oily:"light",spicy:"mild",broth:"nobroth",desc:"신선하고 고소한"},
+  {name:"치킨마요덮밥",emoji:"🍗",cuisine:"korean",oily:"light",spicy:"mild",broth:"nobroth",desc:"부드럽고 고소한"},
+  {name:"오징어덮밥",emoji:"🦑",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"nobroth",desc:"매콤하고 쫄깃한"},
+  {name:"돈부리",emoji:"🍚",cuisine:"japanese",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"든든한 일본식 덮밥"},
+  {name:"함박스테이크",emoji:"🍳",cuisine:"japanese",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"부드럽고 든든한"},
+  {name:"카레돈가스",emoji:"🍛",cuisine:"japanese",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"달콤하고 든든한"},
+  {name:"크림파스타",emoji:"🍝",cuisine:"western",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"크리미하고 진한"},
+  {name:"토마토스파게티",emoji:"🍝",cuisine:"western",oily:"light",spicy:"mild",broth:"nobroth",desc:"산뜻하고 새콤한"},
+  {name:"미국식 피자",emoji:"🍕",cuisine:"western",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"두툼하고 치즈 듬뿍"},
+  {name:"이탈리안 피자",emoji:"🍕",cuisine:"western",oily:"light",spicy:"mild",broth:"nobroth",desc:"얇고 바삭한 정통 피자"},
+  {name:"리조또",emoji:"🍚",cuisine:"western",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"크리미하고 고소한"},
+  {name:"떡볶이",emoji:"🍢",cuisine:"bunsik",oily:"light",spicy:"spicy",broth:"broth",desc:"달콤 매콤 국민간식"},
+  {name:"김밥",emoji:"🍙",cuisine:"bunsik",oily:"light",spicy:"mild",broth:"nobroth",desc:"간편하고 든든한"},
+  {name:"라볶이",emoji:"🍜",cuisine:"bunsik",oily:"light",spicy:"spicy",broth:"broth",desc:"매콤하고 쫄깃한"},
+  {name:"라면",emoji:"🍜",cuisine:"bunsik",oily:"light",spicy:"spicy",broth:"broth",desc:"얼큰하고 간편한"},
+  {name:"햄버거",emoji:"🍔",cuisine:"fastfood",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"든든하고 간편한"},
+  {name:"베트남쌀국수",emoji:"🍜",cuisine:"asian",oily:"light",spicy:"mild",broth:"broth",desc:"시원하고 깔끔한"},
+  {name:"팟타이",emoji:"🍜",cuisine:"asian",oily:"light",spicy:"spicy",broth:"nobroth",desc:"달콤 새콤 매콤한"},
+  {name:"인도식 커리",emoji:"🍛",cuisine:"asian",oily:"hearty",spicy:"spicy",broth:"nobroth",desc:"향긋하고 진한"},
+  {name:"카레라이스",emoji:"🍛",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"부드럽고 고소한"},
+  {name:"반미",emoji:"🥖",cuisine:"asian",oily:"light",spicy:"mild",broth:"nobroth",desc:"가볍고 이국적인"},
+  {name:"푸팟퐁커리",emoji:"🦀",cuisine:"asian",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"진하고 고소한"},
+  {name:"샐러드",emoji:"🥗",cuisine:"cafe",oily:"light",spicy:"mild",broth:"nobroth",desc:"건강하고 산뜻한"},
+  {name:"샌드위치",emoji:"🥪",cuisine:"cafe",oily:"light",spicy:"mild",broth:"nobroth",desc:"간편하고 깔끔한"},
+  {name:"브런치 세트",emoji:"🍳",cuisine:"cafe",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"여유롭고 든든한"},
+  {name:"순대국밥",emoji:"🍲",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"broth",desc:"구수하고 든든한"},
+  {name:"돼지국밥",emoji:"🍲",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"broth",desc:"진하고 담백한"},
+  {name:"짜글이",emoji:"🥓",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"broth",desc:"매콤하고 자작한"},
+  {name:"서브웨이",emoji:"🌯",cuisine:"cafe",oily:"light",spicy:"mild",broth:"nobroth",desc:"프레쉬하고 건강한"},
+  {name:"치킨버거",emoji:"🍔",cuisine:"fastfood",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"바삭하고 푸짐한"},
+  {name:"마라탕",emoji:"🌶️",cuisine:"chinese",oily:"hearty",spicy:"spicy",broth:"broth",desc:"얼큰하고 얼얼한"},
+  {name:"마라샹궈",emoji:"🌶️",cuisine:"chinese",oily:"hearty",spicy:"spicy",broth:"nobroth",desc:"매콤하고 짭짤한"},
+  {name:"잡채밥",emoji:"🍚",cuisine:"chinese",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"고소하고 탱글한"},
+  {name:"잡탕밥",emoji:"🍚",cuisine:"chinese",oily:"hearty",spicy:"mild",broth:"nobroth",desc:"풍성하고 다채로운"},
+  {name:"울면",emoji:"🍜",cuisine:"chinese",oily:"hearty",spicy:"mild",broth:"broth",desc:"담백하고 부드러운"},
+  {name:"마파두부",emoji:"🧈",cuisine:"chinese",oily:"hearty",spicy:"spicy",broth:"nobroth",desc:"매콤하고 보들보들"},
+  {name:"토스트",emoji:"🥪",cuisine:"cafe",oily:"light",spicy:"mild",broth:"nobroth",desc:"바삭하고 달콤한"},
+  {name:"돼지김치찜",emoji:"🥓",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"nobroth",desc:"깊고 진한 매콤함"},
+  {name:"소머리국밥",emoji:"🍲",cuisine:"korean",oily:"hearty",spicy:"mild",broth:"broth",desc:"맑고 깊은 국물"},
+  {name:"얼큰우거지국밥",emoji:"🍲",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"broth",desc:"시원하고 칼칼한"},
+  {name:"낙지볶음",emoji:"🦑",cuisine:"korean",oily:"hearty",spicy:"spicy",broth:"nobroth",desc:"매콤하고 쫄깃한"},
+  {name:"쫄면",emoji:"🍜",cuisine:"bunsik",oily:"light",spicy:"spicy",broth:"nobroth",desc:"새콤달콤 쫄깃한"},
+  {name:"전복죽",emoji:"🥣",cuisine:"korean",oily:"light",spicy:"mild",broth:"broth",desc:"고소하고 영양 가득"},
+  {name:"낙지김치죽",emoji:"🥣",cuisine:"korean",oily:"light",spicy:"spicy",broth:"broth",desc:"얼큰하고 부드러운"},
+  {name:"군고구마",emoji:"🍠",cuisine:"cafe",oily:"light",spicy:"mild",broth:"nobroth",desc:"달콤하고 따끈한"},
+  {name:"타코",emoji:"🌮",cuisine:"fastfood",oily:"light",spicy:"mild",broth:"nobroth",desc:"이국적이고 매콤한"},
+  {name:"또띠아랩",emoji:"🌯",cuisine:"cafe",oily:"light",spicy:"mild",broth:"nobroth",desc:"산뜻하고 간편한"},
+  {name:"포케",emoji:"🥗",cuisine:"cafe",oily:"light",spicy:"mild",broth:"nobroth",desc:"신선하고 깔끔한"},
+  {name:"요거트볼",emoji:"🥣",cuisine:"cafe",oily:"light",spicy:"mild",broth:"nobroth",desc:"상큼하고 가벼운"},
+  {name:"스프와 빵",emoji:"🥐",cuisine:"cafe",oily:"light",spicy:"mild",broth:"broth",desc:"따뜻하고 부드러운"},
+  {name:"빵과 라떼",emoji:"🥐",cuisine:"cafe",oily:"light",spicy:"mild",broth:"nobroth",desc:"고소하고 여유로운"},
+  {name:"컵라면과 삼각김밥",emoji:"🍙",cuisine:"korean",oily:"light",spicy:"spicy",broth:"broth",desc:"간편하고 든든한"}
+];
+
+/* ── 질문 데이터 ── */
+var QUESTIONS={
+  lunch:[
+    {key:"cuisine",q:"오늘 점심, 어떤 종류가 땡기세요?",hint:"하나를 골라주세요",opts:[
+      {v:"all",i:"🍽",l:"상관없어요",s:"다 괜찮아요"},
+      {v:"korean",i:"🥘",l:"한식",s:"찌개, 덮밥, 면..."},
+      {v:"chinese",i:"🥢",l:"중식",s:"짜장면, 짬뽕..."},
+      {v:"japanese",i:"🍣",l:"일식",s:"초밥, 라멘, 덮밥..."},
+      {v:"western",i:"🍝",l:"양식",s:"파스타, 피자..."},
+      {v:"bunsik",i:"🍢",l:"분식",s:"떡볶이, 김밥..."},
+      {v:"fastfood",i:"🍔",l:"패스트푸드",s:"햄버거..."},
+      {v:"asian",i:"🍜",l:"아시안",s:"쌀국수, 커리..."},
+      {v:"cafe",i:"☕",l:"카페·브런치",s:"브런치 세트..."}
+    ]},
+    {key:"oily",q:"얼마나 든든하게 먹고 싶어요?",hint:"오늘 식욕을 알려주세요",opts:[
+      {v:"all",i:"🤷",l:"상관없어요",s:"다 좋아요"},
+      {v:"hearty",i:"🍖",l:"든든하게 먹고 싶어요",s:"배부르고 푸짐하게"},
+      {v:"light",i:"🥗",l:"가볍게 먹고 싶어요",s:"담백하고 깔끔하게"}
+    ]},
+    {key:"spicy",q:"매운 건 어때요?",hint:"오늘 입맛을 알려주세요",opts:[
+      {v:"all",i:"😐",l:"상관없어요",s:"다 OK"},
+      {v:"spicy",i:"🌶",l:"매운 게 좋아요",s:"얼얼하게"},
+      {v:"mild",i:"😌",l:"안 매운 게 좋아요",s:"순하게"}
+    ]},
+    {key:"broth",q:"국물은요?",hint:"따뜻한 국물 한 모금?",opts:[
+      {v:"all",i:"🤷",l:"상관없어요",s:"다 괜찮아요"},
+      {v:"broth",i:"🍵",l:"국물 있는 게 좋아요",s:"뜨끈하게"},
+      {v:"nobroth",i:"🍽",l:"국물 없는 게 좋아요",s:"깔끔하게"}
+    ]}
+  ],
+  hoesik:[
+    {key:"cuisine",q:"회식, 어떤 종류가 좋을까요?",hint:"하나를 골라주세요",opts:[
+      {v:"all",i:"🍽",l:"상관없어요",s:"다 괜찮아요"},
+      {v:"korean",i:"🥘",l:"한식",s:"찌개, 고기, 덮밥..."},
+      {v:"chinese",i:"🥢",l:"중식",s:"짜장면, 짬뽕..."},
+      {v:"japanese",i:"🍣",l:"일식",s:"초밥, 라멘, 덮밥..."},
+      {v:"western",i:"🍝",l:"양식",s:"파스타, 피자..."},
+      {v:"bunsik",i:"🍢",l:"분식",s:"떡볶이, 김밥..."},
+      {v:"asian",i:"🍜",l:"아시안",s:"쌀국수, 커리..."}
+    ]},
+    {key:"oily",q:"얼마나 든든하게 먹을까요?",hint:"팀원들 식욕을 알려주세요",opts:[
+      {v:"all",i:"🤷",l:"상관없어요",s:"다 좋아요"},
+      {v:"hearty",i:"🍖",l:"든든하게 먹어야죠",s:"배부르고 푸짐하게"},
+      {v:"light",i:"🥗",l:"가볍게 먹고 싶어요",s:"담백하고 깔끔하게"}
+    ]},
+    {key:"spicy",q:"매운 건 어때요?",hint:"팀원 중 못 먹는 분 있나요?",opts:[
+      {v:"all",i:"😐",l:"상관없어요",s:"다 잘 먹어요"},
+      {v:"spicy",i:"🌶",l:"매운 거 환영",s:"다들 잘 먹어요"},
+      {v:"mild",i:"😌",l:"안 매운 걸로요",s:"못 먹는 분이 있어요"}
+    ]},
+    {key:"broth",q:"국물 있는 걸 원하나요?",hint:"분위기에 맞게 골라주세요",opts:[
+      {v:"all",i:"🤷",l:"상관없어요",s:"다 괜찮아요"},
+      {v:"broth",i:"🍵",l:"국물 있는 게 좋아요",s:"뜨끈하게"},
+      {v:"nobroth",i:"🍽",l:"국물 없는 게 좋아요",s:"깔끔하게"}
+    ]}
+  ]
+};
+
+/* ── 상태 변수 ── */
+var qMode="lunch", qAns={}, qStep=0, qRes=[], pAnim=false;
+var busy={l:false, h:false};
+var secretMode=false, secretPick=null, tapCount=0, tapTimer=null;
+
+/* ── 네이버 ── */
+var PIN='<svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>';
+function nurl(n){ return 'https://map.naver.com/v5/search/'+encodeURIComponent(n+' 맛집'); }
+function nbtnH(n){ return '<a class="nbtn" href="'+nurl(n)+'" target="_blank">'+PIN+' 네이버 지도에서 '+n+' 맛집 찾기</a>'; }
+function openM(emoji, name){
+  document.getElementById('me').textContent=emoji;
+  document.getElementById('mt').textContent=name+' 맛집을 찾아볼까요?';
+  document.getElementById('ml').href=nurl(name);
+  document.getElementById('mbt').textContent='네이버 지도에서 '+name+' 맛집 찾기';
+  document.getElementById('mbg').classList.add('open');
+}
+function closeM(){ document.getElementById('mbg').classList.remove('open'); }
+
+/* ── 페이지 이동 ── */
+function goTo(id){
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+}
+function goHome(){
+  goTo('p-home');
+  // 랜덤 카드 초기화
+  ['l','h'].forEach(function(k){
+    busy[k]=false;
+    var c=document.getElementById('rc-'+k);
+    if(c) c.className='rand-card';
+    ['re','rn','rd'].forEach(function(p){ var e=document.getElementById(p+'-'+k); if(e) e.textContent=''; });
+    var m=document.getElementById('rmeta-'+k); if(m) m.textContent='';
+    var n=document.getElementById('rnav-'+k);  if(n) n.innerHTML='';
+  });
+  // 퀴즈 초기화
+  qAns={}; qStep=0; qRes=[]; pAnim=false;
+  ['lp','lc','hp','hc'].forEach(function(id){ var e=document.getElementById(id); if(e) e.innerHTML=''; });
+}
+
+/* ── 랜덤 뽑기 ── */
+function doRand(key){
+  if(busy[key]) return;
+  busy[key]=true;
+  document.getElementById('rnav-'+key).innerHTML='';
+  document.getElementById('rmeta-'+key).textContent='';
+  var card=document.getElementById('rc-'+key);
+  card.className='rand-card';
+  var isSecret=(key==='h' && secretMode && secretPick!==null);
+  var pick=isSecret ? LF[secretPick] : LF[Math.floor(Math.random()*LF.length)];
+  var dl=[];
+  for(var i=0;i<20;i++) dl.push(Math.floor(35+Math.pow(i/20,2)*293.5));
+  var s=0;
+  function fl(){
+    if(s<20){
+      var f=LF[Math.floor(Math.random()*LF.length)];
+      card.className='rand-card fl';
+      document.getElementById('re-'+key).textContent=f.emoji;
+      document.getElementById('rn-'+key).textContent=f.name;
+      document.getElementById('rd-'+key).textContent=f.desc;
+      s++; setTimeout(fl, dl[s-1]);
+    } else {
+      card.className='rand-card hi';
+      document.getElementById('re-'+key).textContent=pick.emoji;
+      document.getElementById('rn-'+key).textContent=pick.name;
+      document.getElementById('rd-'+key).textContent=pick.desc;
+      document.getElementById('rmeta-'+key).textContent='한 번 더 누르면 다시 뽑아요';
+      document.getElementById('rnav-'+key).innerHTML=nbtnH(pick.name);
+      busy[key]=false;
+    }
+  }
+  fl();
+}
+
+/* ── 퀴즈 ── */
+function startQ(mode){ qMode=mode; qAns={}; qStep=0; qRes=[]; pAnim=false; renderQ(); }
+function ansQ(key, val){ qAns[key]=val; qStep++; renderQ(); }
+
+function filterLF(ans){
+  return LF.filter(function(x){
+    return (ans.cuisine==='all'||x.cuisine===ans.cuisine)&&
+           (ans.oily==='all'||x.oily===ans.oily)&&
+           (ans.spicy==='all'||x.spicy===ans.spicy)&&
+           (ans.broth==='all'||x.broth===ans.broth);
+  });
+}
+
+function renderQ(){
+  var qs=QUESTIONS[qMode];
+  var pid=qMode==='lunch'?'lp':'hp';
+  var cid=qMode==='lunch'?'lc':'hc';
+  var pEl=document.getElementById(pid);
+  var cEl=document.getElementById(cid);
+  var dots='';
+  for(var i=0;i<qs.length;i++) dots+='<div class="qdot'+(i<qStep?' done':'')+'"></div>';
+  pEl.innerHTML=dots;
+  if(qStep>=qs.length){
+    for(var i=0;i<qs.length;i++) dots='';
+    var allDone='';
+    for(var i=0;i<qs.length;i++) allDone+='<div class="qdot done"></div>';
+    pEl.innerHTML=allDone;
+    qRes=filterLF(qAns);
+    renderRes(cEl);
+    return;
+  }
+  var q=qs[qStep];
+  var optsHtml='';
+  for(var i=0;i<q.opts.length;i++){
+    var o=q.opts[i];
+    optsHtml+='<button class="qopt" onclick="ansQ(\''+q.key+'\',\''+o.v+'\')">'
+      +'<span class="qopt-icon">'+o.i+'</span>'
+      +'<span><span class="qopt-label">'+o.l+'</span><span class="qopt-sub">'+o.s+'</span></span>'
+      +'</button>';
+  }
+  cEl.innerHTML='<div class="qstep"><div class="qq">'+q.q+'</div><div class="qh">'+q.hint+'</div><div class="qopts">'+optsHtml+'</div></div>';
+}
+
+function renderRes(cEl){
+  var isH=(qMode==='hoesik');
+  var rf="startQ('"+qMode+"')";
+  var title=isH?'딱 맞는 회식 메뉴예요! 🍻':'딱 맞는 메뉴예요! 🎉';
+  var label=isH?'오늘 회식 메뉴는':'오늘의 메뉴는';
+  if(!qRes.length){
+    cEl.innerHTML='<div class="qstep"><div class="qq">조건에 맞는 메뉴가 없어요 😅</div><div class="qh" style="margin-bottom:1.5rem">조건을 조금 바꿔볼까요?</div><div class="brow"><button class="rbtn" onclick="'+rf+'">↩ 다시 찾기</button></div></div>';
+    return;
+  }
+  if(qRes.length===1){
+    var f=qRes[0];
+    cEl.innerHTML='<div class="qstep"><div class="qq">'+title+'</div>'
+      +'<div class="fbanner"><span class="fb-emoji">'+f.emoji+'</span><div class="fb-label">'+label+'</div><div class="fb-name">'+f.name+'</div><div class="fb-desc">'+f.desc+'</div>'+nbtnH(f.name)+'</div>'
+      +'<div class="brow" style="margin-top:1.2rem"><button class="rbtn" onclick="'+rf+'">↩ 다시 찾기</button></div></div>';
+    return;
+  }
+  var grid='';
+  for(var i=0;i<qRes.length;i++){
+    var f=qRes[i];
+    grid+='<div class="rc" id="rc'+i+'" data-idx="'+i+'">'
+      +'<span class="rc-emoji">'+f.emoji+'</span>'
+      +'<div class="rc-name">'+f.name+'</div>'
+      +'<div class="rc-desc">'+f.desc+'</div>'
+      +'</div>';
+  }
+  cEl.innerHTML='<div class="qstep"><div class="qq">'+title+'</div>'
+    +'<div class="qh">'+qRes.length+'개의 메뉴를 찾았어요 · 먹고 싶은 메뉴를 눌러보세요</div>'
+    +'<div class="rgrid" id="rgrid">'+grid+'</div>'
+    +'<div id="fbanner"></div>'
+    +'<div class="brow"><button class="rbtn" onclick="'+rf+'">↩ 다시 찾기</button>'
+    +'<button class="pbtn" id="pbtn" onclick="pickR()">🎲 '+qRes.length+'개 중 랜덤으로 고르기</button></div></div>';
+  document.getElementById('rgrid').addEventListener('click', function(e){
+    var card=e.target.closest('.rc');
+    if(!card) return;
+    var f=qRes[parseInt(card.dataset.idx)];
+    if(f) openM(f.emoji, f.name);
+  });
+}
+
+/* ── pickR ── */
+function pickR(){
+  if(pAnim||!qRes.length) return;
+  pAnim=true;
+  var isH=(qMode==='hoesik');
+  var btn=document.getElementById('pbtn');
+  btn.disabled=true; btn.textContent='고르는 중...';
+  document.getElementById('fbanner').innerHTML='';
+  var pick=qRes[Math.floor(Math.random()*qRes.length)];
+  var dl=[];
+  for(var i=0;i<18;i++) dl.push(Math.floor(40+Math.pow(i/18,2)*324));
+  var s=0;
+  function fl(){
+    for(var i=0;i<qRes.length;i++){ var e=document.getElementById('rc'+i); if(e) e.className='rc'; }
+    if(s<18){
+      var e=document.getElementById('rc'+Math.floor(Math.random()*qRes.length));
+      if(e) e.className='rc fl';
+      s++; setTimeout(fl, dl[s-1]);
+    } else {
+      var idx=-1;
+      for(var i=0;i<qRes.length;i++){ if(qRes[i].name===pick.name){idx=i;break;} }
+      var e=document.getElementById('rc'+idx);
+      if(e){ e.className='rc hi'; setTimeout(function(){e.scrollIntoView({behavior:'smooth',block:'center'});},80); }
+      document.getElementById('fbanner').innerHTML='<div class="fbanner"><span class="fb-emoji">'+pick.emoji+'</span><div class="fb-label">'+(isH?'오늘 회식 메뉴는':'오늘의 메뉴는')+'</div><div class="fb-name">'+pick.name+'</div><div class="fb-desc">'+pick.desc+'</div>'+nbtnH(pick.name)+'</div>';
+      btn.disabled=false; btn.textContent='🎲 '+qRes.length+'개 중 다시 고르기'; pAnim=false;
+    }
+  }
+  fl();
+}
+
+/* ── 비밀 설정 ── */
+function secretTap(){
+  tapCount++;
+  clearTimeout(tapTimer);
+  if(tapCount>=5){ tapCount=0; openSecret(); return; }
+  tapTimer=setTimeout(function(){tapCount=0;}, 1500);
+}
+
+function openSecret(){
+  goTo('p-secret');
+  var list=document.getElementById('secret-list');
+  var html='';
+  for(var i=0;i<LF.length;i++){
+    var p=LF[i];
+    var selected=(secretPick===i);
+    html+='<div onclick="selectSecret('+i+')" id="sitem-'+i+'" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r);border:1px solid '+(selected?'#d85a30':'var(--bd)')+';background:var(--sur);cursor:pointer;transition:all .15s;">'
+      +'<span style="font-size:18px;">'+p.emoji+'</span>'
+      +'<div style="flex:1;"><div style="font-size:13px;font-weight:500;">'+p.name+'</div><div style="font-size:11px;color:var(--txm);">'+p.desc+'</div></div>'
+      +'<span id="scheck-'+i+'" style="font-size:16px;'+(selected?'':'display:none;')+'">✅</span>'
+      +'</div>';
+  }
+  list.innerHTML=html;
+  updateSecretUI();
+}
+
+function selectSecret(i){
+  if(secretPick!==null){
+    var prev=document.getElementById('sitem-'+secretPick);
+    var prevCk=document.getElementById('scheck-'+secretPick);
+    if(prev) prev.style.borderColor='var(--bd)';
+    if(prevCk) prevCk.style.display='none';
+  }
+  secretPick=i;
+  var el=document.getElementById('sitem-'+i);
+  var ck=document.getElementById('scheck-'+i);
+  if(el) el.style.borderColor='#d85a30';
+  if(ck) ck.style.display='inline';
+}
+
+function toggleSecret(){
+  if(secretPick===null){ alert('먼저 메뉴를 선택해주세요!'); return; }
+  secretMode=!secretMode;
+  updateSecretUI();
+}
+
+function updateSecretUI(){
+  var status=document.getElementById('secret-status');
+  var btn=document.getElementById('secret-toggle');
+  if(status) status.textContent=secretMode?'켜짐 🔴':'꺼짐';
+  if(btn){
+    btn.textContent=secretMode?'조작 모드 끄기':'조작 모드 켜기';
+    btn.style.background=secretMode?'#d85a30':'var(--tx)';
+  }
+}
+/* ── 엑셀 업로드 ── */
+function loadXlsx(input){
+  var file=input.files[0];
+  if(!file) return;
+  var msg=document.getElementById('upload-msg');
+  msg.textContent='읽는 중...';
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=new Uint8Array(e.target.result);
+      var wb=XLSX.read(data,{type:'uint8array'});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      // 1행=헤더, 2행=안내, 3행~=데이터
+      var newMenus=[];
+      var validCuisine=['korean','chinese','japanese','western','bunsik','fastfood','asian','cafe'];
+      var validOily=['hearty','light'];
+      var validSpicy=['spicy','mild'];
+      var validBroth=['broth','nobroth'];
+      var errors=[];
+      for(var i=2;i<rows.length;i++){
+        var r=rows[i];
+        var name=String(r[0]||'').trim();
+        if(!name) continue;
+        var emoji=String(r[1]||'').trim()||'🍽';
+        var cuisine=String(r[2]||'').trim();
+        var oily=String(r[3]||'').trim();
+        var spicy=String(r[4]||'').trim();
+        var broth=String(r[5]||'').trim();
+        var desc=String(r[6]||'').trim()||'';
+        if(validCuisine.indexOf(cuisine)<0){errors.push((i+1)+'행: 종류 오류('+cuisine+')');continue;}
+        if(validOily.indexOf(oily)<0){errors.push((i+1)+'행: 든든함 오류('+oily+')');continue;}
+        if(validSpicy.indexOf(spicy)<0){errors.push((i+1)+'행: 맵기 오류('+spicy+')');continue;}
+        if(validBroth.indexOf(broth)<0){errors.push((i+1)+'행: 국물 오류('+broth+')');continue;}
+        newMenus.push({name:name,emoji:emoji,cuisine:cuisine,oily:oily,spicy:spicy,broth:broth,desc:desc});
+      }
+      if(!newMenus.length){msg.style.color='#993c1d';msg.textContent='불러온 메뉴가 없어요. 파일 형식을 확인해주세요.';return;}
+      LF=newMenus;
+      secretPick=null; secretMode=false; updateSecretUI();
+      openSecret();
+      var errTxt=errors.length?' (오류 '+errors.length+'행 건너뜀)':'';
+      msg.style.color='#3b6d11';
+      msg.textContent='✅ '+newMenus.length+'개 메뉴를 불러왔어요'+errTxt;
+      input.value='';
+    } catch(err){
+      msg.style.color='#993c1d';
+      msg.textContent='파일 읽기 실패: '+err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</body>
+</html>
